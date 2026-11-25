@@ -67,12 +67,14 @@ The original 119,390 rows are retained in the main analysis; flags identify:
 
 The three exclusions are assessed **separately** against the original standardized comparison, not as one combined cleaned subset. Sensitivity weights are recomputed for each restricted comparison.
 
-| Sensitivity scenario | Standardized Direct | Standardized TA/TO | Gap |
-|---|---:|---:|---:|
-| Original | 21.12% | 39.61% | 18.49 pp |
-| Exclude zero guests | 21.16% | 39.64% | 18.48 pp |
-| Exclude negative ADR | 21.12% | 39.61% | 18.49 pp |
-| Exclude extreme ADR | 21.12% | 39.61% | 18.49 pp |
+| Sensitivity scenario | Rows removed (all channels) | Rows removed (Direct + TA/TO) | Standardized Direct | Standardized TA/TO | Gap |
+|---|---:|---:|---:|---:|---:|
+| Original | 0 | 0 | 21.12% | 39.61% | 18.49 pp |
+| Exclude zero guests | 180 | 154 | 21.16% | 39.64% | 18.48 pp |
+| Exclude negative ADR | 1 | 1 | 21.12% | 39.61% | 18.49 pp |
+| Exclude extreme ADR | 1 | 1 | 21.12% | 39.61% | 18.49 pp |
+
+The 180 zero-guest exclusions include **154 Direct/TA/TO rows** and **26 bookings from other channels**. The standardized comparison is recalculated on 112,515 rows in the original scenario and 112,361 in the no-zero-guests scenario (112,514 for each ADR exclusion). These are small changes relative to the comparison population; the results do not demonstrate immunity to other biases.
 
 The hypothetical one-row-per-identical-pattern calculation is **separate** from these channel-standardization scenarios. It compares overall cancellation rates only; it does not establish that the standardized channel gap is robust to deduplication.
 
@@ -85,7 +87,7 @@ The hypothetical one-row-per-identical-pattern calculation is **separate** from 
 - `notebooks/01_data_validation_eda.ipynb`: independent pandas implementation
 - `data/processed/fair_channel_groups.csv`: 12-group stratum details (fractional rate fields)
 - `data/processed/channel_comparison.csv`: percentage-valued raw and standardized rates
-- `data/processed/sensitivity_summary.csv`: percentage-valued sensitivity rates and percentage-point gaps
+- `data/processed/sensitivity_summary.csv`: percentage-valued sensitivity rates, percentage-point gaps and counts of excluded rows
 
 **Unit warning:** In `fair_channel_groups.csv`, `cancellation_rate` and `weighted_rate` are proportions (0–1); in `channel_comparison.csv` and `sensitivity_summary.csv`, the `*_pct` columns are already on a 0–100 percentage scale. Avoid multiplying the latter by 100 when formatting Tableau values.
 
