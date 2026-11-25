@@ -163,7 +163,15 @@ jupyter notebook
 
 Open `notebooks/01_data_validation_eda.ipynb` and run the cells in sequence.
 
-> **Portable file paths:** The committed notebook now uses Python's `pathlib` instead of hardcoded Windows paths. Start Jupyter from the cloned repository root (as shown above) or from its `notebooks/` directory. It automatically resolves the source CSV and `data/processed/` output directory relative to that location. Choose an available Python kernel with the listed dependencies installed. The notebook's historical saved outputs were produced before this path update; run all cells yourself to validate your local environment.
+> **Portable file paths:** The notebook uses Python's `pathlib` instead of hardcoded Windows paths and declares the standard `python3` Jupyter kernel. Start Jupyter from the cloned repository root (as shown above) or from its `notebooks/` directory. It resolves the source CSV and `data/processed/` output directory relative to that location.
+>
+> **Refresh saved notebook outputs:** The current committed outputs were saved before the latest sensitivity-count and path updates. Run **Kernel → Restart & Run All** in Jupyter, then save the notebook and commit the refreshed outputs. Alternatively, from the repository root after installing `nbconvert` and `ipykernel`, run:
+>
+> ```bash
+> jupyter nbconvert --to notebook --execute --inplace notebooks/01_data_validation_eda.ipynb --ExecutePreprocessor.kernel_name=python3
+> ```
+>
+> A fresh successful run should display `rows_removed_all` and `rows_removed_fair` in the final sensitivity table. Do not claim to have refreshed outputs until that execution succeeds.
 
 ### 2. Reproduce the SQL analysis
 
