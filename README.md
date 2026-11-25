@@ -97,14 +97,14 @@ The **5.07 pp** gap reduction is calculated from *unrounded* values; subtracting
 
 Each scenario excludes **one flagged record category at a time**, with pooled weights recalculated for that scenario.
 
-| Scenario | Standardized Direct | Standardized TA/TO | Gap |
-|:---|---:|---:|---:|
-| Original data | 21.12% | 39.61% | **18.49 pp** |
-| Exclude zero-guest bookings | 21.16% | 39.64% | **18.48 pp** |
-| Exclude negative ADR record | 21.12% | 39.61% | **18.49 pp** |
-| Exclude extreme ADR record | 21.12% | 39.61% | **18.49 pp** |
+| Scenario | Rows excluded (all channels) | Rows excluded (Direct + TA/TO) | Standardized Direct | Standardized TA/TO | Gap |
+|:---|---:|---:|---:|---:|---:|
+| Original data | 0 | 0 | 21.12% | 39.61% | **18.49 pp** |
+| Exclude zero-guest bookings | 180 | 154 | 21.16% | 39.64% | **18.48 pp** |
+| Exclude negative ADR record | 1 | 1 | 21.12% | 39.61% | **18.49 pp** |
+| Exclude extreme ADR record | 1 | 1 | 21.12% | 39.61% | **18.49 pp** |
 
-These specific exclusions change the standardized gap very little. **They do not establish robustness to all data-quality issues or unmeasured confounding.**
+The zero-guest filter removes **180 rows overall**, including **154** from the Direct + TA/TO population (112,515 → 112,361). Each ADR exclusion removes only **one** Direct/TA/TO booking (112,515 → 112,514). Because so few comparison rows are removed, these sensitivity checks change the estimated gap very little. **They do not establish robustness to all data-quality issues or unmeasured confounding.** Counts are included in [`sensitivity_summary.csv`](data/processed/sensitivity_summary.csv).
 
 An additional, **separate** hypothetical one-row-per-identical-pattern exercise was performed for the *overall cancellation rate only*. It was **not** used as a standardized channel-gap sensitivity test. [Details](docs/limitations.md).
 
@@ -163,18 +163,7 @@ jupyter notebook
 
 Open `notebooks/01_data_validation_eda.ipynb` and run the cells in sequence.
 
-> **Path adjustment required:** The notebook currently contains absolute Windows paths specific to the machine on which it was created. Before running, update the input path for `data/raw/hotels.csv` and the export location for `data/processed/` to your own project directory. The repository includes the original CSVs and the completed exports so you can inspect results without rerunning everything.
-
-If the notebook's working directory is `notebooks/`, a portable alternative for those two paths is:
-
-```python
-from pathlib import Path
-project_root = Path.cwd().parent
-input_csv = project_root / "data" / "raw" / "hotels.csv"
-output_dir = project_root / "data" / "processed"
-```
-
-Replace the notebook's existing input and output paths with the variables above. Confirm the working directory if running the notebook from a different location.
+> **Portable file paths:** The committed notebook now uses Python's `pathlib` instead of hardcoded Windows paths. Start Jupyter from the cloned repository root (as shown above) or from its `notebooks/` directory. It automatically resolves the source CSV and `data/processed/` output directory relative to that location. Choose an available Python kernel with the listed dependencies installed. The notebook's historical saved outputs were produced before this path update; run all cells yourself to validate your local environment.
 
 ### 2. Reproduce the SQL analysis
 
@@ -189,7 +178,13 @@ Replace the notebook's existing input and output paths with the variables above.
 4. Run the remaining scripts in numerical order: [02 — Data Quality](sql/02_data_quality.sql), [03 — Cleaning](sql/03_cleaning.sql), [04 — KPIs](sql/04_kpi_analysis.sql), [05 — Fair Comparison](sql/05_fair_comparison.sql), [06 — Sensitivity](sql/06_sensitivity.sql).
 5. Compare results with [verified findings](docs/key_findings.md) and the Python output.
 
-**Notes:** The CSV import is **manual**; it is not performed by the SQL scripts. The `\copy` command works in `psql`, not as a regular SQL statement in pgAdmin's Query Tool. The `CREATE TABLE clean.hotel_bookings AS` statement is intended for a **fresh** database; reruns may need to reset the created table.
+**Notes:** The CSV import is **manual**; it is not performed by the SQL scripts. The `\copy` command works in `psql`, not as a regular SQL statement in pgAdmin's Query Tool.
+
+**SQL rerun behavior:**
+- `01_setup.sql` uses `CREATE SCHEMA IF NOT EXISTS` and `CREATE TABLE IF NOT EXISTS`, so repeated execution does not recreate or empty the raw table.
+- `02_data_quality.sql`, `04_kpi_analysis.sql`, `05_fair_comparison.sql` and `06_sensitivity.sql` contain read-only queries and can be rerun without changing tables.
+- `03_cleaning.sql` **is not idempotent**: `CREATE TABLE clean.hotel_bookings AS` fails if that table already exists. Use a fresh database or intentionally reset the cleaned table and its dependent view before rerunning; do not blindly drop tables with `CASCADE` in a database containing other work.
+- **Never repeat the CSV import without clearing/refreshing the raw table first**: it would append the source rows again and corrupt totals.
 
 ### 3. Review the Tableau dashboards
 
