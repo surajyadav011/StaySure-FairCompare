@@ -46,7 +46,7 @@ The reported standardized-rate scenarios separately exclude:
 2. The negative ADR row,
 3. The row with ADR = 5400.
 
-Each scenario recalculates the pooled stratum weights. These three tests produce gaps around **18.48–18.49 pp**, but they do not assess every potential bias.
+Each scenario recalculates the pooled stratum weights. The zero-guest filter excludes **180 rows overall**, of which **154** are Direct/TA/TO bookings. Each ADR filter excludes **one row overall**, and that row is in the Direct/TA/TO comparison population. The respective fair-comparison populations are **112,515 (baseline)**, **112,361 (without zero guests)** and **112,514 (each ADR exclusion)**. These tests produce gaps around **18.48–18.49 pp**, but they do not assess every potential bias.
 
 **Crucially:** The hypothetical identical-pattern exercise calculates **overall** cancellation performance only; it does **not** provide a standardized channel comparison after deduplication. Do not describe the standardized gap as tested or stable under deduplication.
 
@@ -56,7 +56,7 @@ The **Undefined** channel has only five bookings. Its observed 80% cancellation 
 
 ## 7. Reproducibility and operational limitations
 
-- The committed Jupyter notebook contains **hardcoded author-specific Windows paths** in its input/output cells. They must be changed after cloning; code is not fully path-portable in its current form.
+- The Jupyter notebook uses `pathlib` to locate project files relative to the repository. Launch Jupyter from the repository root or its `notebooks/` folder so the path lookup resolves as intended. Python package dependencies must still be installed.
 - The PostgreSQL scripts include table creation and analysis but **do not automatically load** the CSV. A separate manual import step is required.
 - The Excel workbook is supplied, but a standalone Power Query M-script export is **not** included in the repository.
 - The Tableau packaged workbook and screenshots are included; interactive behavior should be tested in Tableau Public before making claims about live filter interactions.
