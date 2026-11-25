@@ -83,6 +83,8 @@ The cleaned SQL layer converts applicable text fields to integers, numeric ADR a
 | `direct_pct` | Standardized Direct rate, **0–100 percentage units** |
 | `ta_to_pct` | Standardized TA/TO rate, **0–100 percentage units** |
 | `gap_pp` | TA/TO minus Direct, **percentage points** |
+| `rows_removed_all` | Number of bookings excluded from the **entire 119,390-row dataset** in this scenario |
+| `rows_removed_fair` | Number of excluded bookings within the **Direct + TA/TO comparison population (112,515 rows)** |
 
 ## Important grain / identifier note
 
