@@ -1,59 +1,126 @@
 # StaySure FairCompare
-### Hotel Booking Cancellation & Fair Channel Performance Analytics
 
-**An end-to-end, reproducible portfolio project** using Excel/Power Query, PostgreSQL, Python and Tableau to analyze hotel booking cancellations and compare distribution channels after accounting for differences in hotel type and booking lead time.
+**Hotel Booking Cancellation Analysis & Fair Distribution-Channel Comparison**
 
-[**Explore the interactive Tableau Public workbook**](https://public.tableau.com/app/profile/suraj.suraj1627/viz/StaySure_FairCompare/Dashboard1)
+A portfolio case study built with **Excel / Power Query, PostgreSQL, Python and Tableau** to investigate hotel booking cancellations—and a question that a simple dashboard cannot answer on its own:
 
-![Hotel Cancellation Performance](tableau/screenshots/dashboard_01.png)
-![Fair Channel Comparison and Robustness](tableau/screenshots/dashboard_02.png)
+> **Does the cancellation-rate gap between Direct and travel-agent / tour-operator bookings remain when both channels are compared using the same mix of hotel types and booking lead times?**
 
-## Business problem
+[**View the Tableau dashboards**](https://public.tableau.com/app/profile/suraj.suraj1627/viz/StaySure_FairCompare/Dashboard1) · [**Explore the methodology**](docs/methodology.md) · [**Read the findings**](docs/key_findings.md) · [**MIT License**](LICENSE)
 
-Direct bookings and travel-agent/tour-operator bookings have different cancellation rates. But they may also have different mixes of city/resort bookings and advance booking lead times. **How much of the observed cancellation-rate gap remains after comparing the channels using the same hotel-type × lead-time mix?**
+**Tech stack:** Excel · Power Query · PostgreSQL · SQL · Python · pandas · Matplotlib · Tableau Public
 
-This is an **observational comparison**, not a causal estimate of changing a booking channel.
+---
 
-## Verified highlights
+## At a glance
 
-| Metric | Result |
-|---|---:|
-| Total bookings | 119,390 |
-| Canceled bookings | 44,224 |
-| Overall cancellation rate | 37.04% |
-| Direct booking cancellation rate | 17.46% |
-| TA/TO cancellation rate | 41.03% |
-| Raw TA/TO minus Direct gap | 23.57 percentage points |
-| Standardized Direct rate | 21.12% |
-| Standardized TA/TO rate | 39.61% |
-| Standardized gap | 18.49 percentage points |
-| Reduction in gap after standardization | 5.07 percentage points |
+| Dataset / analysis metric | Verified result |
+|:---|---:|
+| Booking records analyzed | **119,390** |
+| Canceled bookings | **44,224** |
+| Overall cancellation rate | **37.04%** |
+| Direct channel — raw cancellation rate | **17.46%** |
+| TA/TO channel — raw cancellation rate | **41.03%** |
+| Raw channel gap (TA/TO − Direct) | **23.57 percentage points** |
+| Gap after hotel × lead-time standardization | **18.49 percentage points** |
+| Reduction in the observed gap | **5.07 percentage points** |
 
-The standardized comparison uses **112,515 Direct and TA/TO bookings** across **six common hotel × lead-time strata** (12 channel-specific groups).
+**Main finding:** Direct has a lower observed cancellation rate than TA/TO. Adjusting both channels to a **common hotel-type × lead-time distribution** reduces the observed gap from **23.57 pp** to **18.49 pp**. The difference in booking mix accounts for part of the unadjusted comparison, but this **does not establish a causal effect of distribution channel**.
 
-## Tools and analytical workflow
+The fair comparison covers **112,515 Direct and TA/TO bookings**, grouped into **six common strata** (2 hotel types × 3 lead-time buckets).
 
-1. **Excel / Power Query:** initial data inspection and cleaning workflow (workbook at `excel/StaySure_FairCompare.xlsx`).
-2. **PostgreSQL:** raw data schema, quality checks, typed analysis table, KPIs, hotel/lead-time/channel comparisons, direct standardization and sensitivity queries.
-3. **Python (pandas, Matplotlib):** independent validation, exploratory plots, stratum-weight calculations, sensitivity checks and Tableau CSV exports.
-4. **Tableau Public:** two dashboards covering overall cancellation performance and fair channel comparison / robustness.
+## Dashboards
 
-## Repository structure
+### 1. Hotel Cancellation Performance
+
+Overall booking KPIs, cancellation rates across distribution channels, hotel types and booking lead-time buckets.
+
+[![Hotel Cancellation Performance dashboard](tableau/screenshots/dashboard_01.png)](https://public.tableau.com/app/profile/suraj.suraj1627/viz/StaySure_FairCompare/Dashboard1)
+
+### 2. Fair Channel Comparison & Robustness
+
+Raw versus standardized rates, a stratum-level Direct vs TA/TO comparison, and sensitivity checks for flagged records.
+
+![Fair Channel Comparison & Robustness dashboard](tableau/screenshots/dashboard_02.png)
+
+**[Open the published Tableau workbook](https://public.tableau.com/app/profile/suraj.suraj1627/viz/StaySure_FairCompare/Dashboard1)** to navigate between dashboards. The packaged workbook is also available at [`tableau/StaySure_FairCompare.twbx`](tableau/StaySure_FairCompare.twbx).
+
+## Business questions
+
+1. How common are cancellations overall and across hotel types, channels and booking lead times?
+2. How different are Direct and TA/TO cancellation rates **before** adjustment?
+3. How much of that gap remains if both channels are evaluated under a **shared hotel × lead-time composition**?
+4. Do the standardized rates change materially when zero-guest or anomalous ADR records are excluded?
+5. What data-quality limitations prevent stronger conclusions?
+
+## Approach
+
+| Stage | What I did | Project files |
+|:---|:---|:---|
+| **1. Inspect & prepare** | Profiled the original booking data and worked through cleaning in Excel / Power Query. | [Excel workbook](excel/StaySure_FairCompare.xlsx) |
+| **2. Validate with SQL** | Created a raw-data schema, checked quality, constructed typed analysis data and calculated cancellation KPIs. | [SQL scripts](sql/) |
+| **3. Independently analyze in Python** | Validated counts, explored patterns, calculated pooled weights and exported data for visualization. | [Jupyter notebook](notebooks/01_data_validation_eda.ipynb) |
+| **4. Communicate findings** | Built two Tableau dashboards for operational KPIs and the standardized channel comparison. | [Tableau workbook](tableau/StaySure_FairCompare.twbx) |
+
+**Data policy:** I retained the original **119,390** booking rows in the main analysis. Records with identical values across all available columns were **not automatically deleted** because the dataset has no unique booking identifier. See [data quality and limitations](docs/limitations.md).
+
+## What makes the channel comparison fairer?
+
+A raw comparison mixes together bookings made under different conditions. City and Resort hotels, for example, may have different cancellation behavior, as may bookings made 10 versus 150 days in advance.
+
+I grouped Direct and TA/TO bookings by:
+
+- **Hotel:** City Hotel or Resort Hotel
+- **Lead time:** 0–30, 31–90 or 91+ days
+
+For each of the **six** hotel × lead-time groups, I calculated a shared weight based on its proportion of *all Direct + TA/TO bookings*. I then applied the **same weights** to each channel's within-group cancellation rates.
+
+```text
+Shared weight in stratum = (Direct bookings + TA/TO bookings in stratum)
+                           / (All Direct + TA/TO bookings)
+
+Standardized rate (channel) = Σ [shared stratum weight × channel's stratum rate]
+
+Standardized gap = Standardized TA/TO rate − Standardized Direct rate
+```
+
+| Comparison | Direct | TA/TO | Difference (TA/TO − Direct) |
+|:---|---:|---:|---:|
+| Raw cancellation rate | 17.46% | 41.03% | **23.57 pp** |
+| Standardized cancellation rate | 21.12% | 39.61% | **18.49 pp** |
+
+The **5.07 pp** gap reduction is calculated from *unrounded* values; subtracting the displayed rounded gaps can produce a 0.01 pp discrepancy. The analysis adjusts **only** for hotel type and lead-time bucket—not other potential confounders.
+
+**Implementation:** [PostgreSQL calculation](sql/05_fair_comparison.sql) · [Python notebook](notebooks/01_data_validation_eda.ipynb) · [Full mathematical explanation](docs/methodology.md)
+
+## Sensitivity checks
+
+Each scenario excludes **one flagged record category at a time**, with pooled weights recalculated for that scenario.
+
+| Scenario | Standardized Direct | Standardized TA/TO | Gap |
+|:---|---:|---:|---:|
+| Original data | 21.12% | 39.61% | **18.49 pp** |
+| Exclude zero-guest bookings | 21.16% | 39.64% | **18.48 pp** |
+| Exclude negative ADR record | 21.12% | 39.61% | **18.49 pp** |
+| Exclude extreme ADR record | 21.12% | 39.61% | **18.49 pp** |
+
+These specific exclusions change the standardized gap very little. **They do not establish robustness to all data-quality issues or unmeasured confounding.**
+
+An additional, **separate** hypothetical one-row-per-identical-pattern exercise was performed for the *overall cancellation rate only*. It was **not** used as a standardized channel-gap sensitivity test. [Details](docs/limitations.md).
+
+## Repository layout
 
 ```text
 StaySure-FairCompare/
 ├── data/
-│   ├── raw/
-│   │   └── hotels.csv
+│   ├── raw/hotels.csv
 │   └── processed/
 │       ├── hotel_bookings_analysis.csv
 │       ├── fair_channel_groups.csv
 │       ├── channel_comparison.csv
 │       └── sensitivity_summary.csv
-├── excel/
-│   └── StaySure_FairCompare.xlsx
-├── notebooks/
-│   └── 01_data_validation_eda.ipynb
+├── excel/StaySure_FairCompare.xlsx
+├── notebooks/01_data_validation_eda.ipynb
 ├── sql/
 │   ├── 01_setup.sql
 │   ├── 02_data_quality.sql
@@ -66,53 +133,91 @@ StaySure-FairCompare/
 │   └── screenshots/
 │       ├── dashboard_01.png
 │       └── dashboard_02.png
-└── docs/
-    ├── methodology.md
-    ├── data_dictionary.md
-    ├── key_findings.md
-    └── limitations.md
+├── docs/
+│   ├── methodology.md
+│   ├── data_dictionary.md
+│   ├── key_findings.md
+│   └── limitations.md
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
-## How to reproduce
+## Run the analysis locally
 
-### Data and Python
+### Requirements
 
-- Clone the repository, then create a Python environment and install the notebook dependencies: `python -m pip install pandas matplotlib jupyter`.
-- Start Jupyter: `jupyter notebook` and open `notebooks/01_data_validation_eda.ipynb`.
-- **Important portability note:** the committed notebook currently uses author-specific absolute Windows paths in its CSV input and export cells. **Change those paths to your local clone directory** before running; they are not portable as committed.
-- Run notebook cells in order. It checks the raw dataset, computes the standardized comparison, and exports the four files in `data/processed/`.
+- Python with `pandas`, `matplotlib` and Jupyter Notebook
+- PostgreSQL (for the SQL portion)
+- Tableau Desktop / Tableau Public (to edit the workbook)
+- Excel with Power Query (to inspect the Excel workflow)
 
-### PostgreSQL
+### 1. Clone and open the Python notebook
 
-- Create/connect to a PostgreSQL database.
-- Run `sql/01_setup.sql` to create `raw.hotel_bookings` (all 32 fields initially stored as text).
-- Import `data/raw/hotels.csv` into the raw table **before running the remaining scripts**. For example, inside `psql`, adapt the CSV path in:
-  ```sql
-  \copy raw.hotel_bookings FROM 'path/to/data/raw/hotels.csv' WITH (FORMAT csv, HEADER true, NULL '')
-  ```
-- Run `sql/02_data_quality.sql`, `sql/03_cleaning.sql`, `sql/04_kpi_analysis.sql`, `sql/05_fair_comparison.sql`, then `sql/06_sensitivity.sql` in order.
-- The table-creation step in `03_cleaning.sql` is designed for a fresh database; repeating it without resetting the clean table can produce an already-exists error.
-- Compare SQL outputs with the notebook results and `docs/key_findings.md`.
+```bash
+git clone https://github.com/surajyadav011/StaySure-FairCompare.git
+cd StaySure-FairCompare
+python -m pip install pandas matplotlib notebook
+jupyter notebook
+```
 
-### Tableau
+Open `notebooks/01_data_validation_eda.ipynb` and run the cells in sequence.
 
-Open `tableau/StaySure_FairCompare.twbx` in Tableau, or use the [public dashboard](https://public.tableau.com/app/profile/suraj.suraj1627/viz/StaySure_FairCompare/Dashboard1). Tableau uses the analysis CSV exports for charts, standardized groups and sensitivity summaries.
+> **Path adjustment required:** The notebook currently contains absolute Windows paths specific to the machine on which it was created. Before running, update the input path for `data/raw/hotels.csv` and the export location for `data/processed/` to your own project directory. The repository includes the original CSVs and the completed exports so you can inspect results without rerunning everything.
 
-## Analytical method
+If the notebook's working directory is `notebooks/`, a portable alternative for those two paths is:
 
-Raw cancellation rate = canceled bookings / bookings. For the fair comparison, group only **Direct** and **TA/TO** by hotel (City / Resort) and lead-time buckets (0–30, 31–90, 91+ days). For each stratum, compute a shared weight from the combined Direct + TA/TO booking count. Multiply each channel's within-stratum cancellation rate by the same shared weight, then sum across strata. Full derivation: [Methodology](docs/methodology.md).
+```python
+from pathlib import Path
+project_root = Path.cwd().parent
+input_csv = project_root / "data" / "raw" / "hotels.csv"
+output_dir = project_root / "data" / "processed"
+```
+
+Replace the notebook's existing input and output paths with the variables above. Confirm the working directory if running the notebook from a different location.
+
+### 2. Reproduce the SQL analysis
+
+1. Create an empty PostgreSQL database and connect to it.
+2. Run [`sql/01_setup.sql`](sql/01_setup.sql) to create the `raw` schema and `raw.hotel_bookings` table.
+3. **Import the 32-column `data/raw/hotels.csv` file** into `raw.hotel_bookings`. For example, in the `psql` CLI (replace the path):
+
+   ```sql
+   \copy raw.hotel_bookings FROM '/absolute/path/to/StaySure-FairCompare/data/raw/hotels.csv' WITH (FORMAT csv, HEADER true, NULL '')
+   ```
+
+4. Run the remaining scripts in numerical order: [02 — Data Quality](sql/02_data_quality.sql), [03 — Cleaning](sql/03_cleaning.sql), [04 — KPIs](sql/04_kpi_analysis.sql), [05 — Fair Comparison](sql/05_fair_comparison.sql), [06 — Sensitivity](sql/06_sensitivity.sql).
+5. Compare results with [verified findings](docs/key_findings.md) and the Python output.
+
+**Notes:** The CSV import is **manual**; it is not performed by the SQL scripts. The `\copy` command works in `psql`, not as a regular SQL statement in pgAdmin's Query Tool. The `CREATE TABLE clean.hotel_bookings AS` statement is intended for a **fresh** database; reruns may need to reset the created table.
+
+### 3. Review the Tableau dashboards
+
+Open [`tableau/StaySure_FairCompare.twbx`](tableau/StaySure_FairCompare.twbx) or use the [published Tableau workbook](https://public.tableau.com/app/profile/suraj.suraj1627/viz/StaySure_FairCompare/Dashboard1). The processed CSVs represent different data grains; **do not join row-level and aggregated exports without checking their grain**.
 
 ## Documentation
 
-- [Methodology and standardization formula](docs/methodology.md)
-- [Data dictionary](docs/data_dictionary.md)
-- [Detailed findings and sensitivity results](docs/key_findings.md)
-- [Data quality, limitations and interpretation](docs/limitations.md)
+| Document | What it covers |
+|:---|:---|
+| [Methodology](docs/methodology.md) | Standardization formula, common weights, population and units |
+| [Data dictionary](docs/data_dictionary.md) | Original booking fields and derived Tableau export fields |
+| [Key findings](docs/key_findings.md) | Hotel/channel/lead-time results and sensitivity tables |
+| [Limitations](docs/limitations.md) | Missing data, identical-row patterns, assumptions and non-causal interpretation |
 
-## Dataset and credit
+## Dataset attribution
 
-Dataset: [TidyTuesday — Hotel bookings, 2020-02-11](https://github.com/rfordatascience/tidytuesday/tree/main/data/2020/2020-02-11), derived from the Hotel Booking Demand dataset described by António, Almeida and Nunes (2019). This is a historical, publicly shared dataset, **not real-time hotel operations data**.
+The hotel bookings data comes from the public [**TidyTuesday dataset published on 2020-02-11**](https://github.com/rfordatascience/tidytuesday/tree/main/data/2020/2020-02-11), based on the *Hotel Booking Demand* dataset described by Nuno António, Ana de Almeida and Luís Nunes (2019).
 
-## Interpretation caution
+This is a **historical observational dataset**—not live hotel business data. Dataset provenance and any applicable third-party rights remain with their original sources.
 
-A lower adjusted cancellation rate in Direct does **not** prove that moving TA/TO customers to Direct would reduce cancellations. Unmeasured customer and booking characteristics may explain part of the remaining gap. Identical-looking full rows were retained because no unique booking identifier is available to establish true duplicate bookings. See [Limitations](docs/limitations.md).
+## Author
+
+**Suraj** · [GitHub: @surajyadav011](https://github.com/surajyadav011) · [Tableau Public portfolio](https://public.tableau.com/app/profile/suraj.suraj1627)
+
+I built this project to go beyond descriptive KPIs: to validate the underlying data, question raw comparisons, and communicate what the numbers **can—and cannot—support**.
+
+## License
+
+The **original project code and documentation** are made available under the [**MIT License**](LICENSE). Copyright © 2026 Suraj.
+
+**Third-party datasets, libraries and other external materials are not relicensed by this repository's MIT License.** Consult the original sources and their terms before reusing those materials.
