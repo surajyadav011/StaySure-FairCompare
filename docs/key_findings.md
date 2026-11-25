@@ -67,12 +67,14 @@ TA/TO has the higher observed cancellation rate in all six displayed strata. **T
 
 ## Sensitivity of the standardized gap
 
-| Scenario (each exclusion separate) | Direct | TA/TO | Gap |
-|---|---:|---:|---:|
-| Original | 21.12% | 39.61% | 18.49 pp |
-| Exclude zero-guest rows | 21.16% | 39.64% | 18.48 pp |
-| Exclude negative ADR row | 21.12% | 39.61% | 18.49 pp |
-| Exclude extreme ADR row | 21.12% | 39.61% | 18.49 pp |
+| Scenario (each exclusion separate) | Removed overall | Removed in Direct + TA/TO | Direct | TA/TO | Gap |
+|---|---:|---:|---:|---:|---:|
+| Original | 0 | 0 | 21.12% | 39.61% | 18.49 pp |
+| Exclude zero-guest rows | 180 | 154 | 21.16% | 39.64% | 18.48 pp |
+| Exclude negative ADR row | 1 | 1 | 21.12% | 39.61% | 18.49 pp |
+| Exclude extreme ADR row | 1 | 1 | 21.12% | 39.61% | 18.49 pp |
+
+In the no-zero-guests scenario, 180 rows leave the overall dataset but only 154 belong to Direct or TA/TO; the comparison population decreases from 112,515 to 112,361 bookings. Each ADR scenario removes one comparison booking (112,514 remaining). Small exclusion counts help explain the limited numerical movement but do not, on their own, prove the analysis is unbiased.
 
 The conclusion is numerically similar under these three specific exclusions. This does **not** establish robustness to every possible data issue or unmeasured confounding.
 
